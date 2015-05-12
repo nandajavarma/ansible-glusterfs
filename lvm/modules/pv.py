@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Ansible module to create or remove a Physical Volume.
-(c) 2015
+(c) 2015 Nandaja Varma <nvarma@redhat.com>
 This file is part of Ansible
 Ansible is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -41,8 +41,7 @@ options:
                      Physical Volumes can be given here. Check the man page of
                      pvcreate for more info.
 
-authors: Anusha Rao
-         Nandaja Varma
+author: Nandaja Varma
 '''
 
 EXAMPLES = '''
@@ -71,8 +70,8 @@ class PvOps(object):
     def validated_params(self, opt):
         value = self.module.params[opt]
         if value is None:
-            print "Please provide %s option in the playbook!" % opt
-            sys.exit(1)
+            msg = "Please provide %s option in the playbook!" % opt
+            module.exit_json(msg=msg)
         return value
 
     def run_command(self, op, options):
@@ -81,16 +80,18 @@ class PvOps(object):
         if op == 'pvdisplay':
             ret = 1
             if self.action == 'create' and not rc:
-                print "%s Physical Volume Exists!" % options
+                self.module.fail_json(msg=
+                        "%s Physical Volume Exists!" % options)
             elif self.action == 'remove' and rc:
-                print "%s Physical Volume Does Not Exist!" % options
+                self.module.fail_json(msg=
+                        "%s Physical Volume Does Not Exist!" % options)
             else:
                 ret = 0
             return ret
         elif rc:
             self.module.fail_json(msg="Failed executing pv command.",
                                   rc=rc, err=err)
-        print output
+        self.module.exit_json(msg = output)
 
     def create_or_remove(self):
         for each in self.disks:
