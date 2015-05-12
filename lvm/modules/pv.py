@@ -60,16 +60,16 @@ from ast import literal_eval
 class PvOps(object):
 
     def __init__(self, module):
-        self.result = {0: [], 1: []}
+        self.result = {'clears': [], 'errors': []}
         self.module = module
         self.disks = literal_eval(self.validated_params('disks'))
         self.options = module.params['options'] or ''
         self.action = self.validated_params('action')
         map(self.pv_action, self.disks)
-        if not self.result[1]:
-            self.module.exit_json(msg = self.result[0])
+        if not self.result['errors']:
+            self.module.exit_json(msg = self.result['clears'])
         else:
-            self.module.fail_json(msg = self.result[1])
+            self.module.fail_json(msg = self.result['errors'])
 
     def validated_params(self, opt):
         value = self.module.params[opt]
@@ -84,17 +84,17 @@ class PvOps(object):
         if op == 'pvdisplay':
             ret = 0
             if self.action == 'create' and not rc:
-                self.result[1].append("%s Physical Volume Exists!" % options)
+                self.result['errors'].append("%s Physical Volume Exists!" % options)
             elif self.action == 'remove' and rc:
-                self.result[1].append(
+                self.result['errors'].append(
                         "%s Physical Volume Does Not Exist!" % options)
             else:
                 ret = 1
             return ret
         elif rc:
-            self.result[1].append(err)
+            self.result['errors'].append(err)
         else:
-            self.result[0].append(output)
+            self.result['clears'].append(output)
 
     def pv_action(self, disk):
         presence_check = self.run_command('pvdisplay', ' ' + disk)
