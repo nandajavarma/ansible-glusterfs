@@ -54,7 +54,6 @@ EXAMPLES = '''
 '''
 from ansible.module_utils.basic import *
 import json
-import sys
 from ast import literal_eval
 
 
@@ -71,7 +70,7 @@ class PvOps(object):
         value = self.module.params[opt]
         if value is None:
             msg = "Please provide %s option in the playbook!" % opt
-            module.exit_json(msg=msg)
+            self.module.exit_json(msg=msg)
         return value
 
     def run_command(self, op, options):
