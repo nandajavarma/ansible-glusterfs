@@ -61,10 +61,11 @@ class PvOps(object):
 
     def __init__(self, module):
         self.module = module
-        self.disks = self.validated_params('disks')
+        self.disks = literal_eval(self.validated_params('disks'))
         self.options = module.params['options'] or ''
         self.action = self.validated_params('action')
-        self.create_or_remove()
+        output = map(self.pv_action, self.disks)
+        self.module.exit_json(msg = output)
 
     def validated_params(self, opt):
         value = self.module.params[opt]
@@ -90,16 +91,16 @@ class PvOps(object):
         elif rc:
             self.module.fail_json(msg="Failed executing pv command.",
                                   rc=rc, err=err)
-        self.module.exit_json(msg = output)
+        return output
 
-    def create_or_remove(self):
-        presence_check = self.run_command('pvdisplay', ' ' + self.disks)
+    def pv_action(self, disk):
+        presence_check = self.run_command('pvdisplay', ' ' + disk)
         if not presence_check:
             op = 'pv' + self.action
-            args = {'pvcreate': " %s %s" %(self.options, self.disks),
-                    'pvremove': " %s" % self.disks
+            args = {'pvcreate': " %s %s" %(self.options, disk),
+                    'pvremove': " %s" % disk
                    }[op]
-            self.run_command(op, args)
+            return self.run_command(op, args)
 
 if __name__ == '__main__':
        module = AnsibleModule(
