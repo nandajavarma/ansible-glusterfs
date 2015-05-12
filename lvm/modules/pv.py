@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Ansible module to create or remove a Physical Volume.
-(c) 2015 Nandaja Varma <nvarma@redhat.com>
+(c) 2015 Nandaja Varma <nvarma@redhat.com>, Anusha B Rao <aroa@redhat.com>
 This file is part of Ansible
 Ansible is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ options:
                      Physical Volumes can be given here. Check the man page of
                      pvcreate for more info.
 
-author: Nandaja Varma
+author: Nandaja Varma, Anusha B Rao
 '''
 
 EXAMPLES = '''
