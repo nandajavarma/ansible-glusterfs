@@ -61,7 +61,7 @@ class PvOps(object):
 
     def __init__(self, module):
         self.module = module
-        self.disks = literal_eval(self.validated_params('disks'))
+        self.disks = self.validated_params('disks')
         self.options = module.params['options'] or ''
         self.action = self.validated_params('action')
         self.create_or_remove()
@@ -93,14 +93,13 @@ class PvOps(object):
         self.module.exit_json(msg = output)
 
     def create_or_remove(self):
-        for each in self.disks:
-            presence_check = self.run_command('pvdisplay', ' ' + each)
-            if not presence_check:
-                op = 'pv' + self.action
-                args = {'pvcreate': " %s %s" %(self.options, each),
-                        'pvremove': " %s" % each
-                       }[op]
-                self.run_command(op, args)
+        presence_check = self.run_command('pvdisplay', ' ' + self.disks)
+        if not presence_check:
+            op = 'pv' + self.action
+            args = {'pvcreate': " %s %s" %(self.options, self.disks),
+                    'pvremove': " %s" % self.disks
+                   }[op]
+            self.run_command(op, args)
 
 if __name__ == '__main__':
        module = AnsibleModule(
