@@ -1,0 +1,51 @@
+# ansible-lvm
+To start using the module ansible has to be installed on the machine from where
+the playbooks are executed.
+
+1. Installing ansible
+
+   # yum install ansible
+
+   Or alternatively clone the ansible upstream project and execute the playbooks.
+
+   $ git clone https://github.com/ansible/ansible.git --recursive
+   $ cd ansible
+   $ source hacking/env-setup
+   $ sudo easy_install pip
+   $ sudo pip install paramiko PyYAML Jinja2 httplib2
+
+
+2. Setting up the inventory file
+
+   Inventory file contains the list of ip-addresses or hostnames on which the
+   modules are executed. For example, a sample inventory file will look like
+   this:
+
+   $ cat .inventory_list
+
+   [snap-hosts]
+   10.70.47.2
+   10.70.47.3
+   10.70.47.4
+   10.70.47.5
+   10.70.47.6
+
+   [replicate-hosts]
+   10.70.47.10
+   10.70.47.11
+   10.70.47.12
+   10.70.47.13
+   10.70.47.14
+
+   In the above example we have two sets of hosts `snap-hosts' and
+   `replicate-hosts'. The YAML file can choose on which set of hosts to run the
+   module on.
+
+3. Executing playbooks
+
+   $ ansible-playbook setup-backend.yml -i ~/.inventory_list
+
+   The above command will execute the setup-backend.yml playbook with the
+   hosts from the .inventory_list, the YAML file contains the list of hosts on
+   which the playbook executes.
+
