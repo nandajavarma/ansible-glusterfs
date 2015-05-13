@@ -60,11 +60,16 @@ from ast import literal_eval
 class PvOps(object):
 
     def __init__(self, module):
+        self.result = {'clears': [], 'errors': []}
         self.module = module
         self.disks = literal_eval(self.validated_params('disks'))
         self.options = module.params['options'] or ''
         self.action = self.validated_params('action')
-        self.create_or_remove()
+        map(self.pv_action, self.disks)
+        if not self.result['errors']:
+            self.module.exit_json(msg = self.result['clears'])
+        else:
+            self.module.fail_json(msg = self.result['errors'])
 
     def validated_params(self, opt):
         value = self.module.params[opt]
@@ -77,30 +82,28 @@ class PvOps(object):
         cmd = self.module.get_bin_path(op, True) + options
         rc, output, err = self.module.run_command(cmd)
         if op == 'pvdisplay':
-            ret = 1
+            ret = 0
             if self.action == 'create' and not rc:
-                self.module.fail_json(msg=
-                        "%s Physical Volume Exists!" % options)
+                self.result['errors'].append("%s Physical Volume Exists!" % options)
             elif self.action == 'remove' and rc:
-                self.module.fail_json(msg=
+                self.result['errors'].append(
                         "%s Physical Volume Does Not Exist!" % options)
             else:
-                ret = 0
+                ret = 1
             return ret
         elif rc:
-            self.module.fail_json(msg="Failed executing pv command.",
-                                  rc=rc, err=err)
-        self.module.exit_json(msg = output)
+            self.result['errors'].append(err)
+        else:
+            self.result['clears'].append(output)
 
-    def create_or_remove(self):
-        for each in self.disks:
-            presence_check = self.run_command('pvdisplay', ' ' + each)
-            if not presence_check:
-                op = 'pv' + self.action
-                args = {'pvcreate': " %s %s" %(self.options, each),
-                        'pvremove': " %s" % each
-                       }[op]
-                self.run_command(op, args)
+    def pv_action(self, disk):
+        presence_check = self.run_command('pvdisplay', ' ' + disk)
+        if presence_check:
+            op = 'pv' + self.action
+            args = {'pvcreate': " %s %s" %(self.options, disk),
+                    'pvremove': " %s" % disk
+                   }[op]
+            self.run_command(op, args)
 
 if __name__ == '__main__':
        module = AnsibleModule(
