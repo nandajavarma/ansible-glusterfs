@@ -14,8 +14,10 @@ the playbooks are executed.
    $ sudo easy_install pip
    $ sudo pip install paramiko PyYAML Jinja2 httplib2
 
+2. Installing the glusterfs-ansible module
+   # rpm -ivh glusterfs-ansible-0.1.rpm
 
-2. Setting up the inventory file
+3. Setting up the inventory file
 
    Inventory file contains the list of ip-addresses or hostnames on which the
    modules are executed. For example, a sample inventory file will look like
@@ -43,6 +45,7 @@ the playbooks are executed.
 
 3. Executing playbooks
 
+   $ cd /usr/share/ansible/ansible-glusterfs/lvm/playbooks/
    $ ansible-playbook setup-backend.yml -i ~/.inventory_list
 
    The above command will execute the setup-backend.yml playbook with the
