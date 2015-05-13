@@ -88,11 +88,13 @@ class LvOps(object):
         if compute == 'rhs':
             metadatasize, pool_sz = self.compute()
         if not error:
-            options = {'thin': ' -L %sK' % metadatasize,
-                       'thick': ' -L %sK' % pool_sz,
-                       'virtual': ' -L %sK -T /dev/%s/%s'
-                                    %( pool_sz, self.vgname, poolname)
-                      }[lvtype] + " -n %s %s" % (lvname, self.vgname)
+            options = {'thin': ' -L %sK -n %s %s' % (metadatasize,
+                                                lvname, self.vgname),
+                       'thick': ' -L %sK -n %s %s' % (pool_sz,
+                                                lvname, self.vgname),
+                       'virtual': ' -L %sK -T /dev/%s/%s -n %s'
+                                    %( pool_sz, self.vgname, poolname, lvname)
+                      }[lvtype]
             return self.run_command('lvcreate', options)
         err = "%s Volume Group Does Not Exist!" %self.vgname
         return 1, 0, err
