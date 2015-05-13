@@ -23,9 +23,9 @@ EXAMPLES = '''
 '''
 from ansible.module_utils.basic import *
 import json
-import os
 from ast import literal_eval
 from math import floor
+error = False
 
 class LvOps(object):
 
@@ -33,10 +33,11 @@ class LvOps(object):
         self.dataalign = 1280 #in KB
         self.module = module
         self.action = self.validated_params('action')
-        self.vgname = literal_eval(self.validated_params('vgname'))
+        self.vgname = self.validated_params('vgname')
         rc, output, err = { 'create': self.create,
                             'convert': self.convert,
-                            'change': self.change
+                            'change': self.change,
+                            'remove': self.remove
                           }[self.action]()
         if rc:
             self.module.fail_json(msg=err)
@@ -44,19 +45,26 @@ class LvOps(object):
             self.module.exit_json(msg=output)
 
     def compute(self):
-        pv_name = os.popen("vgs --noheadings -o pv_name datavg").read().strip()
-        pv_size = floor(os.popen("pvs --noheading --units m  -o pv_size %s"
-                        % pv_name).read().strip(' \t\n\rm') - 4)
-
-        KB_PER_GB=1048576
-        if pv_size > 1000000:
-            METADATA_SIZE_GB=16
-            metadatasize = floor(METADATA_SIZE_GB * KB_PER_GB)
+        global error
+        option = " --noheadings -o pv_name %s" % self.vgname
+        rc, pv_name, err = self.run_command('vgs', option)
+        if  rc:
+            error = True
+            return 0, 0
         else:
-            METADATA_SIZE_MB = pv_size / 200
-            metadatasize = floor(floor(METADATA_SIZE_MB) * 1024)
-        pool_sz = floor(pv_size * 1024) - metadatasize
-        return metadatasize, pool_sz
+            option = " --noheading --units m  -o pv_size %s" % pv_name
+            rc, pv_size, err = self.run_command('pvs', option)
+            if not rc:
+                pv_size = floor(float(pv_size.strip(' m\t\r\n')) - 4)
+                KB_PER_GB=1048576
+                if pv_size > 1000000:
+                    METADATA_SIZE_GB=16
+                    metadatasize = floor(METADATA_SIZE_GB * KB_PER_GB)
+                else:
+                    METADATA_SIZE_MB = pv_size / 200
+                    metadatasize = floor(floor(METADATA_SIZE_MB) * 1024)
+                pool_sz = floor(pv_size * 1024) - metadatasize
+                return metadatasize, pool_sz
 
     def validated_params(self, opt):
         value = self.module.params[opt]
@@ -72,24 +80,31 @@ class LvOps(object):
     def create(self):
         lvtype = self.validated_params('lvtype')
         lvname = self.validated_params('lvname')
+        compute = self.module.params['compute'] or ''
         if lvtype in ['virtual']:
             poolname = self.validated_params('poolname')
-        metadatasize, pool_sz = self.compute()
-        options = {'thin': ' -L %sK' % metadatasize,
-                   'thick': ' -L %sK' % pool_sz,
-                   'virtual': ' -L %sK -T /dev/%s/%s'
-                                %( pool_sz, self.vgname, poolname)
-                  }[lvtype] + " -n %s %s" % lvname, self.vgname
-        return self.run_command('lvcreate', options)
+        else:
+            poolname = ''
+        if compute == 'rhs':
+            metadatasize, pool_sz = self.compute()
+        if not error:
+            options = {'thin': ' -L %sK' % metadatasize,
+                       'thick': ' -L %sK' % pool_sz,
+                       'virtual': ' -L %sK -T /dev/%s/%s'
+                                    %( pool_sz, self.vgname, poolname)
+                      }[lvtype] + " -n %s %s" % (lvname, self.vgname)
+            return self.run_command('lvcreate', options)
+        err = "%s Volume Group Does Not Exist!" %self.vgname
+        return 1, 0, err
 
 
     def convert(self):
         thinpool = self.validated_params('thinpool')
         poolmetadata = self.module.params['poolmetadata'] or ''
-        poolmetadataparse = self.module.params['poolmetadataparse'] or ''
-        options = ' -c %s --thinpool %s --poolmetadata %s ' \
-        '--poolmetadataparse %s' % (self.dataalign, thinpool, \
-                                            poolmetadata, poolmetadataparse)
+        poolmetadataspare = self.module.params['poolmetadataspare'] or ''
+        options = ' -c %s --yes -ff --thinpool %s --poolmetadata %s ' \
+        '--poolmetadataspare %s' % (self.dataalign, thinpool, \
+                                            poolmetadata, poolmetadataspare)
         return self.run_command('lvconvert', options)
 
 
@@ -98,6 +113,11 @@ class LvOps(object):
         zero = self.module.params['zero'] or ''
         options = ' -Z %s %s/%s' % (zero, self.vgname, poolname)
         return self.run_command('lvchange', options)
+
+    def remove(self):
+        lvname = self.validated_params('lvname')
+        opt = ' -ff --yes %s/%s' % (self.vgname, lvname)
+        return self.run_command('lvremove', opt)
 
 
 def main():
@@ -109,9 +129,10 @@ def main():
                   vgname = dict(),
                   thinpool = dict(),
                   poolmetadata = dict(),
-                  poolmetadataparse = dict(),
+                  poolmetadataspare = dict(),
                   poolname = dict(),
-                  zero = dict()
+                  zero = dict(),
+                  compute = dict()
            ),
     )
 
