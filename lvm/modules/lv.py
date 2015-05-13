@@ -92,7 +92,7 @@ class LvOps(object):
                                                 lvname, self.vgname),
                        'thick': ' -L %sK -n %s %s' % (pool_sz,
                                                 lvname, self.vgname),
-                       'virtual': ' -L %sK -T /dev/%s/%s -n %s'
+                       'virtual': ' -V %sK -T /dev/%s/%s -n %s'
                                     %( pool_sz, self.vgname, poolname, lvname)
                       }[lvtype]
             return self.run_command('lvcreate', options)
