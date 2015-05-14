@@ -65,18 +65,14 @@ class VgOps(object):
         self.get_output(output)
 
     def get_output(self, output):
-        if self.action == 'remove':
-            for each in output:
-                if each[0][0]:
-                    self.module.fail_json(msg = each[0][2])
-                else:
-                    self.module.exit_json(msg = each[0][1])
-        else:
-            for each in output:
-                if each[0]:
-                    self.module.fail_json(msg = each[2])
-                else:
-                    self.module.exit_json(msg = each[1])
+        for each in output:
+            result = { 'remove': each[0],
+                       'create': each
+                     }[self.action]
+            if result[0]:
+                self.module.fail_json(msg = result[2])
+            else:
+                self.module.exit_json(msg = result[1])
 
     def validated_params(self, opt):
         value = self.module.params[opt]
@@ -90,7 +86,6 @@ class VgOps(object):
         op = 'vg' + self.action
         if op == 'vgcreate':
             vg_name = self.generate_name()
-
             opts = " %s %s %s" % (vg_name, self.options, disk)
             return self.run_command(op, opts)
         elif op == 'vgremove':
