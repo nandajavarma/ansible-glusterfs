@@ -52,3 +52,7 @@ the playbooks are executed.
    hosts from the .inventory_list, the YAML file contains the list of hosts on
    which the playbook executes.
 
+4. Host specific data
+
+   All host specific data goes into host_vars/hosname file. This file can be
+   found under /usr/share/ansible/ansible-glusterfs/lvm/playbooks/ directory.
