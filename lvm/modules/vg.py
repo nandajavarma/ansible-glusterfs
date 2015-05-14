@@ -58,10 +58,25 @@ class VgOps(object):
     def __init__(self, module):
         self.module = module
         self.disks = literal_eval(self.validated_params('disks'))
-        self.vg_name = module.params['vg_name']
+        self.vg_pattern = module.params['vg_pattern']
         self.options = module.params['options'] or ''
         self.action = self.validated_params('action')
-        self.generate_command()
+        output = map(self.vg_create_or_remove, self.disks)
+        self.get_output(output)
+
+    def get_output(self, output):
+        if self.action == 'remove':
+            for each in output:
+                if each[0][0]:
+                    self.module.fail_json(msg = each[0][2])
+                else:
+                    self.module.exit_json(msg = each[0][1])
+        else:
+            for each in output:
+                if each[0]:
+                    self.module.fail_json(msg = each[2])
+                else:
+                    self.module.exit_json(msg = each[1])
 
     def validated_params(self, opt):
         value = self.module.params[opt]
@@ -70,84 +85,48 @@ class VgOps(object):
             self.module.exit_json(msg=msg)
         return value
 
-    
-def vg_create_or_remove(self,op,upv_list):
-  
-    if op == 'vgcreate':
-        for u_pv in upv_list:
-            has_vg = os.popen("pvs "+u_pv+" --noheadings -ovg_name").read()
-            has_vg = has_vg.replace(" ","").replace("\n","")
-        if(has_vg):
-            continue
-        else:
-            udisks.append(u_pv)
 
-        for udisk in udisks:
-            vg_name = generate_name(self.vg_name)
-            cmd = ''
-            cmd = module.get_bin_path(op, True)
-            cmd += " " + vg_name + " " + udisk + " " + self.options
-            run_command(cmd)
-    elif op == 'vgremove':
-        cmd = module.get_bin_path('vgremove', True)
-        cmd += vg_name
-        self.run_command(cmd)
-            
-
-def run_command(self,cmd):
-        rc, output, err = self.module.run_command(cmd)
-        
-
-        if self.action == 'create' and not rc:
-            self.module.fail_json(msg=
-                    "%s Volume Group Exists!" % options)
-        elif self.action == 'remove' and rc:
-            self.module.fail_json(msg=
-                        "%s Volume Group Does Not Exist!" % options)
-        else:
-            ret = 0
-        return ret
-        
-        self.module.exit_json(msg = output)
-
-def generate_command(self):
-        u_disks = get_updated_disks(self.disks)
-            #presence_check = self.run_command('pvdisplay', ' ' + each)
-            #if not presence_check:
+    def vg_create_or_remove(self, disk):
         op = 'vg' + self.action
-        args = {'vgcreate': self.vg_create_or_remove,
-                'vgremove': self.vg_create_or_remove,
-               }[op](op,u_disks)
-            #self.run_command(op, args)
+        if op == 'vgcreate':
+            vg_name = self.generate_name()
 
-def generate_name(vg_name):
-    #final_op should have vg_name of the current pvs_list passed to it
-    final_op = os.popen("pvs --noheadings -ovg_name").read().replace(' ','')
-    final_op = final_op.split('\n')
-    final_op = filter(None,final_op)
-    if vg_name in final_op:
-        if (re.match('.*?([0-9]+)$', vg_name)):
-            num = re.match('.*?([0-9]+)$', vg_name).group(1)
-            vg_name = vg_name.replace(num,'')
-            number = int(num) + 1
-            vg_name += str(number)
+            opts = " %s %s %s" % (vg_name, self.options, disk)
+            return self.run_command(op, opts)
+        elif op == 'vgremove':
+            vgs = self.get_vgs(disk).strip().split('\n')
+            output = []
+            for each in vgs:
+                opts = " " + each
+                output.append(self.run_command(op, opts))
+            return output
+
+    def get_vgs(self, disk):
+        opts = " --noheadings -o vg_name %s" % disk
+        rc, output, err = self.run_command('pvs', opts)
+        return output
+
+    def run_command(self, op, opts):
+        cmd = self.module.get_bin_path(op, True) + opts
+        return self.module.run_command(cmd)
+
+
+    def generate_name(self):
+        absent, out, err  = self.run_command('vgdisplay', ' ' + self.vg_pattern)
+        if absent:
+            return self.vg_pattern
         else:
-            vg_name += '1'
-    return vg_name
-
-def get_updated_disks(disks):
-    pvsout = os.popen("pvs --noheadings -opv_name").read().replace(' ','')
-    pvs_list = pvs_list.split('\n')
-    pvs_list.pop()
-    upvs_list = list(set(pvs_list) & set(disks))
-    return upvs_list
-
+            for i in range(1, 100):
+                new_vgname = self.vg_pattern + str(i)
+                absent, out, err  = self.run_command('vgdisplay', ' ' + new_vgname)
+                if absent:
+                    return new_vgname
 
 if __name__ == '__main__':
        module = AnsibleModule(
               argument_spec = dict(
                      action = dict(choices = ["create", "remove"]),
-                     vg_name = dict(type = 'str', required = True),
+                     vg_pattern = dict(type = 'str', required = True),
                      disks = dict(),
                      options = dict(type='str'),
               ),
