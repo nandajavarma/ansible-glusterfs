@@ -1,3 +1,23 @@
 bricks:
         - /dev/vdb
         - /dev/vdc
+
+vgs:
+        - RHS_vg1
+        - RHS_vg2
+
+pools: [ {pool: 'RHS_pool1', vg: 'RHS_vg1'},
+         { pool: 'RHS_pool2', vg: 'RHS_vg2'} ]
+
+lvpools: [{ pool: 'RHS_pool1', vg: 'RHS_vg1', lv: 'RHS_lv1' },
+          { pool: 'RHS_pool2', vg: 'RHS_vg2', lv: 'RHS_lv2' } ]
+
+lvols:
+        - /dev/RHS_vg1/RHS_lv1
+        - /dev/RHS_vg2/RHS_lv2
+
+mntpath: [{ path: '/rhs/brick1', device: '/dev/RHS_vg1/RHS_lv1' },
+          { path: '/rhs/brick2', device: '/dev/RHS_vg2/RHS_lv2' } ]
+
+mountpoints:
+        - [ '/rhs/brick1', '/rhs/brick2' ]

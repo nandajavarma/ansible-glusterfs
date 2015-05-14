@@ -1,19 +1,15 @@
 ---
-- hosts: server-1
+- hosts: rhs_servers
   remote_user: root
   gather_facts: no
 
   tasks:
   - name: Create the backend disks, fails if present
     shell: mkdir -p {{ item }}
-    with_items:
-        - [ '/rhs/brick1', '/rhs/brick2', '/rhs/brick3' ]
+    with_items: mountpoints
 
   - name: Mount the volumes
     mount: name={{ item.path }} src={{ item.device }} fstype=xfs
            opts="inode64,noatime,nodiratime" state=mounted
 
-    with_items:
-        - { path: '/rhs/brick1', device: '/dev/RHS_vg/RHS_lv' }
-        - { path: '/rhs/brick2', device: '/dev/RHS_vg1/RHS_lv1' }
-        - { path: '/rhs/brick3', device: '/dev/RHS_vg2/RHS_lv2' }
+    with_items: mntpath
