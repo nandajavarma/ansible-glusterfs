@@ -112,15 +112,11 @@ class VgOps(object):
 
 
     def generate_name(self):
-        absent, out, err  = self.run_command('vgdisplay', ' ' + self.vg_pattern)
-        if absent:
-            return self.vg_pattern
-        else:
-            for i in range(1, 100):
-                new_vgname = self.vg_pattern + str(i)
-                absent, out, err  = self.run_command('vgdisplay', ' ' + new_vgname)
-                if absent:
-                    return new_vgname
+        for i in range(1, 100):
+            new_vgname = self.vg_pattern + str(i)
+            absent, out, err  = self.run_command('vgdisplay', ' ' + new_vgname)
+            if absent:
+                return new_vgname
 
 if __name__ == '__main__':
        module = AnsibleModule(
