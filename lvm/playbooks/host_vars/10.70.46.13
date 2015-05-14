@@ -1,0 +1,4 @@
+bricks:
+        - /dev/vda
+        - /dev/vdb
+        - /dev/sdb
