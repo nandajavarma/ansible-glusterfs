@@ -27,18 +27,19 @@ from ast import literal_eval
 from math import floor
 error = False
 
+
 class LvOps(object):
 
     def __init__(self, module):
-        self.dataalign = 1280 #in KB
+        self.dataalign = 1280  # in KB
         self.module = module
         self.action = self.validated_params('action')
         self.vgname = self.validated_params('vgname')
-        rc, output, err = { 'create': self.create,
-                            'convert': self.convert,
-                            'change': self.change,
-                            'remove': self.remove
-                          }[self.action]()
+        rc, output, err = {'create': self.create,
+                           'convert': self.convert,
+                           'change': self.change,
+                           'remove': self.remove
+                           }[self.action]()
         if rc:
             self.module.fail_json(msg=err)
         else:
@@ -48,7 +49,7 @@ class LvOps(object):
         global error
         option = " --noheadings -o pv_name %s" % self.vgname
         rc, pv_name, err = self.run_command('vgs', option)
-        if  rc:
+        if rc:
             error = True
             return 0, 0
         else:
@@ -56,9 +57,9 @@ class LvOps(object):
             rc, pv_size, err = self.run_command('pvs', option)
             if not rc:
                 pv_size = floor(float(pv_size.strip(' m\t\r\n')) - 4)
-                KB_PER_GB=1048576
+                KB_PER_GB = 1048576
                 if pv_size > 1000000:
-                    METADATA_SIZE_GB=16
+                    METADATA_SIZE_GB = 16
                     metadatasize = floor(METADATA_SIZE_GB * KB_PER_GB)
                 else:
                     METADATA_SIZE_MB = pv_size / 200
@@ -89,26 +90,24 @@ class LvOps(object):
             metadatasize, pool_sz = self.compute()
         if not error:
             options = {'thin': ' -L %sK -n %s %s' % (metadatasize,
-                                                lvname, self.vgname),
+                                                     lvname, self.vgname),
                        'thick': ' -L %sK -n %s %s' % (pool_sz,
-                                                lvname, self.vgname),
+                                                      lvname, self.vgname),
                        'virtual': ' -V %sK -T /dev/%s/%s -n %s'
-                                    %( pool_sz, self.vgname, poolname, lvname)
-                      }[lvtype]
+                       % (pool_sz, self.vgname, poolname, lvname)
+                       }[lvtype]
             return self.run_command('lvcreate', options)
-        err = "%s Volume Group Does Not Exist!" %self.vgname
+        err = "%s Volume Group Does Not Exist!" % self.vgname
         return 1, 0, err
-
 
     def convert(self):
         thinpool = self.validated_params('thinpool')
         poolmetadata = self.module.params['poolmetadata'] or ''
         poolmetadataspare = self.module.params['poolmetadataspare'] or ''
         options = ' -c %s --yes -ff --thinpool %s --poolmetadata %s ' \
-        '--poolmetadataspare %s' % (self.dataalign, thinpool, \
-                                            poolmetadata, poolmetadataspare)
+            '--poolmetadataspare %s' % (self.dataalign, thinpool,
+                                        poolmetadata, poolmetadataspare)
         return self.run_command('lvconvert', options)
-
 
     def change(self):
         poolname = self.validated_params('poolname')
@@ -124,18 +123,18 @@ class LvOps(object):
 
 def main():
     module = AnsibleModule(
-           argument_spec = dict(
-                  action = dict(choices = ["create", "convert", "change"]),
-                  lvname = dict(),
-                  lvtype = dict(),
-                  vgname = dict(),
-                  thinpool = dict(),
-                  poolmetadata = dict(),
-                  poolmetadataspare = dict(),
-                  poolname = dict(),
-                  zero = dict(),
-                  compute = dict()
-           ),
+        argument_spec=dict(
+            action=dict(choices=["create", "convert", "change"]),
+            lvname=dict(),
+            lvtype=dict(),
+            vgname=dict(),
+            thinpool=dict(),
+            poolmetadata=dict(),
+            poolmetadataspare=dict(),
+            poolname=dict(),
+            zero=dict(),
+            compute=dict()
+        ),
     )
 
     lvops = LvOps(module)

@@ -67,9 +67,9 @@ class PvOps(object):
         self.action = self.validated_params('action')
         map(self.pv_action, self.disks)
         if not self.result['errors']:
-            self.module.exit_json(msg = self.result['clears'])
+            self.module.exit_json(msg=self.result['clears'])
         else:
-            self.module.fail_json(msg = self.result['errors'])
+            self.module.fail_json(msg=self.result['errors'])
 
     def validated_params(self, opt):
         value = self.module.params[opt]
@@ -84,10 +84,12 @@ class PvOps(object):
         if op == 'pvdisplay':
             ret = 0
             if self.action == 'create' and not rc:
-                self.result['errors'].append("%s Physical Volume Exists!" % options)
+                self.result['errors'].append(
+                    "%s Physical Volume Exists!" %
+                    options)
             elif self.action == 'remove' and rc:
                 self.result['errors'].append(
-                        "%s Physical Volume Does Not Exist!" % options)
+                    "%s Physical Volume Does Not Exist!" % options)
             else:
                 ret = 1
             return ret
@@ -100,19 +102,18 @@ class PvOps(object):
         presence_check = self.run_command('pvdisplay', ' ' + disk)
         if presence_check:
             op = 'pv' + self.action
-            args = {'pvcreate': " %s %s" %(self.options, disk),
+            args = {'pvcreate': " %s %s" % (self.options, disk),
                     'pvremove': " %s" % disk
-                   }[op]
+                    }[op]
             self.run_command(op, args)
 
 if __name__ == '__main__':
-       module = AnsibleModule(
-              argument_spec = dict(
-                     action = dict(choices = ["create", "remove"]),
-                     disks = dict(),
-                     options = dict(type='str'),
-              ),
-       )
+    module = AnsibleModule(
+        argument_spec=dict(
+            action=dict(choices=["create", "remove"]),
+            disks=dict(),
+            options=dict(type='str'),
+        ),
+    )
 
-       pvops = PvOps(module)
-
+    pvops = PvOps(module)
