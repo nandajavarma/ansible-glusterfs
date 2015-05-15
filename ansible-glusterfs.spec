@@ -38,6 +38,9 @@ cp -r lvm/modules/*.py \
 mkdir -p %{buildroot}/usr/share/ansible/ansible-glusterfs/lvm
 cp -r lvm/playbooks/ %{buildroot}/usr/share/ansible/ansible-glusterfs/lvm
 
+# Documentation
+cp -r doc %{buildroot}/usr/share/ansible/ansible-glusterfs/
+
 %clean
 rm -rf %{buildroot}
 
