@@ -98,8 +98,3 @@ the playbooks are executed.
    The above command will execute the setup-backend.yml playbook with the
    hosts from the .inventory_list, the YAML file contains the list of hosts on
    which the playbook executes.
-
-5. Host specific data
-
-   All host specific data goes into host_vars/hosname file. This file can be
-   found under /usr/share/ansible/ansible-glusterfs/lvm/playbooks/ directory.
