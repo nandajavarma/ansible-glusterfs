@@ -21,7 +21,7 @@ DOCUMENTATION = '''
 module: pv
 short_description: Create or remove a Physical Volume.
 description:
-    - Creates or removes n-number of Physical Volumes on n-number i
+    - Creates or removes n-number of Physical Volumes on n-number
       of remote hosts
 
 options:

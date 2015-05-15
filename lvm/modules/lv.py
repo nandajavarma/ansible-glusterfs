@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Ansible module to create or remove a Physical Volume.
-(c) 2015 Nandaja Varma <nvarma@redhat.com>
+(c) 2015 Nandaja Varma <nvarma@redhat.com>, Anusha Rao <arao@redhat.com>
 This file is part of Ansible
 Ansible is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,10 +17,108 @@ along with Ansible. If not, see <http://www.gnu.org/licenses/>.
 """
 DOCUMENTATION = '''
 ---
-author: Nandaja Varma
+module: lv
+short_description: Create or remove Logical Volumes and Thin Pools.
+description:
+    - Creates or removes n-number of Logical Volumes and Thin Pools on n-number
+      of remote hosts
+
+options:
+    action:
+        required: true
+        choices: [create, change, convert, remove]
+        description: Specifies the LV operation that is to be executed,
+                     can be create, convert, change or remove .
+
+   lvname:
+        required: false
+        description: Specifies the name of the LV to be created or removed.
+
+   poolname:
+        required: false
+        description: Specifies the name of the pool that is to be associated
+                     with the LV or is to be created or is to be changed.
+
+   vgname:
+        required: true
+        description: Desired volume group names to which the LVs are to be
+                     associated or with which the LVs are associated.
+
+   lvtype:
+        required: true with action create
+        choices: [thin, thick, virtual]
+        description: Required with the create action of the LV module.
+                     With the option thick, the module creates a metadata LV,
+                     With the option thin, the module creates a thin pool and
+                     with hte option virtual, logical volumes for the pool will
+                     be created.
+
+   compute:
+        required: true with action create
+        choice: [rhs]
+        description: This is an RHS specific computation for LV creation.
+                     Pool size and metadata LV size will be calculated as per
+                     RHS specifics. Additional modules has to be added if any
+                     other specifics is needed.
+
+
+   thinpool:
+        required: true with action convert
+        desciption: Required with the action convert, this can be used to
+                    associate metadata LVs with thin pools. thinpool name
+                    should be in the format vgname/lvname
+
+    poolmetadata:
+        required: true with action convert
+        description: This specifies the name of the metadata LV that is to
+                     be associated with the thinpool described by the
+                     previos option
+
+    poolmetadataspare:
+        required: false
+        choices: [yes, no]
+        description: Controls  creation  and  maintanence  of pool metadata
+                     spare logical volume that will be used for automated
+                     pool recovery. Default is yes.
+
+   zero:
+        required: false
+        choices: [y, n]
+        description: Set zeroing mode for thin pool. To be used with the
+                     change action of the logical volume.
+
 '''
+
 EXAMPLES = '''
+    Create logical volume named metadata
+    lv: action=create lvname=metadata compute=rhs lvtype='thick'
+        vgname='RHS_vg1'
+
+    Create a thin pool
+    lv: action=create lvname='RHS_pool1' lvtype='thin'
+        compute=rhs vgname='RHS_vg1'
+
+    Convert the logical volume
+    lv: action=convert thinpool='RHS_vg1/RHS_pool1
+        poolmetadata='RHS_vg1'/'metadata' poolmetadataspare=n
+        vgname='RHS_vg1'
+
+    Create logical volume for the pools
+    lv: action=create poolname='RHS_pool1' lvtype="virtual"
+        compute=rhs vgname=RHS_vg1 lvname='RHS_lv1'
+
+    Change the attributes of the logical volume
+    lv: action=change zero=n vgname='RHS_vg1' poolname='RHS_pool1'
+
+    Remove logical volumes
+    lv: action=remove
+        vgname='RHS_vg1' lvname='RHS_lv1'
+
+---
+authors : Nandaja Varma, Anusha Rao
 '''
+
+
 from ansible.module_utils.basic import *
 import json
 from ast import literal_eval
@@ -124,9 +222,9 @@ class LvOps(object):
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-            action=dict(choices=["create", "convert", "change"]),
+            action=dict(choices=["create", "convert", "change", "remove"]),
             lvname=dict(),
-            lvtype=dict(),
+            lvtype=dict(choices=["thin", "thick", "virtual"]),
             vgname=dict(),
             thinpool=dict(),
             poolmetadata=dict(),
