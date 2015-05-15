@@ -17,15 +17,18 @@ the playbooks are executed.
 2. Installing the glusterfs-ansible module
    # rpm -ivh glusterfs-ansible-0.1.rpm
 
+   or
+
+   # yum install ./glusterfs-ansible-0.1.rpm
+
 3. Setting up the inventory file
 
    Inventory file contains the list of ip-addresses or hostnames on which the
-   modules are executed. For example, a sample inventory file will look like
-   this:
+   modules are executed. For example:
 
    $ cat .inventory_list
 
-   [snap-hosts]
+   [rhs_servers]
    10.70.47.2
    10.70.47.3
    10.70.47.4
@@ -41,9 +44,53 @@ the playbooks are executed.
 
    In the above example we have two sets of hosts `snap-hosts' and
    `replicate-hosts'. The YAML file can choose on which set of hosts to run the
-   module on.
+   module on. If ansible-glusterfs is installed find a sample inventory file at
+   /usr/share/ansible/ansible-glusterfs/doc/ansible_hosts.sample
 
-3. Executing playbooks
+3. Setting variables for execution
+
+   If the bricks in the hostname are of the same type (e.g vda, vdb) then
+   `group_vars' can setup and the modules can be run.
+
+   If the bricks in the hostname are of different types (e.g sdb, vda) then host
+   specific data has to be setup to run the modules.
+
+   IMPORTANT NOTE: host specific values take precedence over group specific
+   data, ensure to clear host specific details if group vars are being setup.
+
+   a. Setting up `host_vars' or host specific data
+
+      If the cluster has four hosts and has different combination of data which
+      cannot be grouped together, then we can setup host specific variables. A
+      file with the same hostname/ip (whichever is mentioned in the inventory
+      file) is created for each host under host_vars directory. `host_vars'
+      directory should be in the same directory where the playbooks reside.
+
+      For example files and syntax in host_vars directory refer to
+      /usr/share/ansible/ansible-glusterfs/lvm/playbooks/host_vars/
+
+      In the inventory file mentioned in the section 3, if user prefers to run
+      commands on the hosts mentioned in `rhs_servers' section, the host_vars
+      directory should have five files `10.70.47.2', `10.70.47.3', `10.70.47.4',
+      `10.70.47.5', and `10.70.47.6' with specific variables defined for each
+      host.
+
+   b. Setting up `group_vars' or group specific data
+
+      If the hosts in the cluster have similar disks with the same names, for
+      example all `vdb's or all `vda's then they can be grouped and the
+      variables can be defined in group_vars. The `group_vars' directory should
+      contain file name matching the group name in the inventory file.
+
+      For example file and syntax for files in group_vars director refer:
+      /usr/share/ansible/ansible-glusterfs/lvm/playbooks/group_vars/
+
+      In the inventory file mentioned in the section 3, if user prefers to run
+      commands on the hosts mentioned in `rhs_servers' section, the group_vars
+      directory will have a file named `rhs_servers' with the variables
+      defined for that group.
+
+4. Executing playbooks
 
    $ cd /usr/share/ansible/ansible-glusterfs/lvm/playbooks/
    $ ansible-playbook setup-backend.yml -i ~/.inventory_list
@@ -52,7 +99,7 @@ the playbooks are executed.
    hosts from the .inventory_list, the YAML file contains the list of hosts on
    which the playbook executes.
 
-4. Host specific data
+5. Host specific data
 
    All host specific data goes into host_vars/hosname file. This file can be
    found under /usr/share/ansible/ansible-glusterfs/lvm/playbooks/ directory.
