@@ -1,0 +1,22 @@
+bricks:
+        - /dev/vdb
+vgs:
+        - RHS_vg1
+
+pools: [
+        {pool: RHS_pool1, vg: RHS_vg1}
+       ]
+
+lvpools: [
+	  { pool: RHS_pool1, vg: RHS_vg1, lv: RHS_lv1 }
+	 ]
+lvols:
+        - /dev/RHS_vg1/RHS_lv1
+
+mntpath: [
+	  { path: /rhs/brick1, device: /dev/RHS_vg1/RHS_lv1 }
+	 ]
+
+mountpoints: [ /rhs/brick1 ]
+
+profile: rhs-high-throughput
