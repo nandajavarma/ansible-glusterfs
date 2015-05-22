@@ -108,9 +108,12 @@ class VgOps(object):
             opts = " %s %s %s" % (vg_name, self.options, vg_or_disk)
             return self.run_command(op, opts)
         elif op == 'vgremove':
-            if self.vg_present(vg_or_disk):
-                opts = " " + vg_or_disk
+            vg_absent = self.run_command('vgdisplay', '' + vg_or_disk)
+            if vg_absent[0]:
+                opts = " -y -ff " + vg_or_disk
                 return self.run_command(op, opts)
+            else:
+                return vg_absent
 
     def vg_present(self, vgname):
         absent, out, err = self.run_command('vgdisplay', ' ' + vgname)
