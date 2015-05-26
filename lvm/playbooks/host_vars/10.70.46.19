@@ -1,6 +1,8 @@
 bricks:
         - /dev/vdb
 
+pvshrink: [ { brick: /dev/vdb, size: 7GB } ]
+
 vgs:
         - RHS_vg1
 

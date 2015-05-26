@@ -141,7 +141,7 @@ class LvOps(object):
         if rc:
             self.module.fail_json(msg=err)
         else:
-            self.module.exit_json(msg=output)
+            self.module.exit_json(msg=output, changed=1)
 
     def compute(self):
         global error
@@ -169,7 +169,7 @@ class LvOps(object):
         value = self.module.params[opt]
         if value is None:
             msg = "Please provide %s option in the playbook!" % opt
-            self.module.exit_json(msg=msg)
+            self.module.fail_json(msg=msg)
         return value
 
     def run_command(self, op, options):

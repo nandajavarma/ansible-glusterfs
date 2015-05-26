@@ -61,13 +61,21 @@ class PvOps(object):
 
     def __init__(self, module):
         self.result = {'clears': [], 'errors': []}
+        self.has_method = False
         self.module = module
-        self.disks = literal_eval(self.validated_params('disks'))
-        self.options = module.params['options'] or ''
         self.action = self.validated_params('action')
-        map(self.pv_action, self.disks)
+        self.options = self.module.params['options'] or ''
+        if hasattr(self, self.action):
+            action_method = getattr(self, self.action)
+            action_method()
+        if not self.has_method:
+            self.disks = literal_eval(self.validated_params('disks'))
+            map(self.pv_action, self.disks)
+        self.get_output()
+
+    def get_output(self):
         if not self.result['errors']:
-            self.module.exit_json(msg=self.result['clears'])
+            self.module.exit_json(msg=self.result['clears'], changed=1)
         else:
             self.module.fail_json(msg=self.result['errors'])
 
@@ -75,44 +83,64 @@ class PvOps(object):
         value = self.module.params[opt]
         if value is None:
             msg = "Please provide %s option in the playbook!" % opt
-            self.module.exit_json(msg=msg)
+            self.module.fail_json(msg=msg)
         return value
 
     def run_command(self, op, options):
-        cmd = self.module.get_bin_path(op, True) + options
+        cmd = self.module.get_bin_path(op, True)  + options
         rc, output, err = self.module.run_command(cmd)
         if op == 'pvdisplay':
-            ret = 0
-            if self.action == 'create' and not rc:
-                self.result['errors'].append(
-                    "%s Physical Volume Exists!" %
-                    options)
-            elif self.action == 'remove' and rc:
-                self.result['errors'].append(
-                    "%s Physical Volume Does Not Exist!" % options)
-            else:
-                ret = 1
-            return ret
+            return rc
         elif rc:
             self.result['errors'].append(err)
         else:
             self.result['clears'].append(output)
 
+
+    def pv_presence_check(self, disk):
+        rc = self.run_command('pvdisplay', ' ' + disk)
+        ret = 0
+        if self.action == 'create' and not rc:
+            self.result['errors'].append(
+                "%s Physical Volume Exists!" %
+                options)
+        elif self.action == 'remove' and rc:
+            self.result['errors'].append(
+                "%s Physical Volume Does Not Exist!" % options)
+        else:
+            ret = 1
+        return ret
+
+    def get_resize_params(self, disk):
+        size = self.validated_params('size')
+        params = " %s --setphysicalvolumesize %s %s " % (self.options, size, disk)
+        if self.pv_presence_check(disk):
+            self.run_command('pvresize', params)
+
+    def resize(self):
+        self.operation = self.validated_params('operation')
+        if self.operation == 'expand':
+            return
+        else:
+            self.has_method = True
+            disks = self.validated_params('disks'),
+            map(self.get_resize_params, disks)
+
+
     def pv_action(self, disk):
-        presence_check = self.run_command('pvdisplay', ' ' + disk)
-        if presence_check:
+        if self.pv_presence_check(disk):
             op = 'pv' + self.action
-            args = {'pvcreate': " %s %s" % (self.options, disk),
-                    'pvremove': " %s" % disk
-                    }[op]
+            args = " %s %s" % (self.options, disk)
             self.run_command(op, args)
 
 if __name__ == '__main__':
     module = AnsibleModule(
         argument_spec=dict(
-            action=dict(choices=["create", "remove"]),
+            action=dict(choices=["create", "remove", "resize", "change", "move"], required=True),
             disks=dict(),
             options=dict(type='str'),
+            size=dict(),
+            operation=dict(choices=["expand", "shrink"]),
         ),
     )
 

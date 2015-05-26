@@ -2,6 +2,10 @@ bricks:
         - /dev/vda
         - /dev/vdb
         - /dev/sdb
+
+pvshrink: [ { brick: /dev/vda, size: 7GB },
+            { brick: /dev/vdb, size: 7GB },
+            { brick: /dev/sdb, size: 80GB } ]
 vgs:
         - RHS_vg1
         - RHS_vg2

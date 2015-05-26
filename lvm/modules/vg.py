@@ -92,13 +92,13 @@ class VgOps(object):
             if each[0]:
                 self.module.fail_json(msg=each[2])
             else:
-                self.module.exit_json(msg=each[1])
+                self.module.exit_json(msg=each[1], changed=1)
 
     def validated_params(self, opt):
         value = self.module.params[opt]
         if value is None:
             msg = "Please provide %s option in the playbook!" % opt
-            self.module.exit_json(msg=msg)
+            self.module.fail_json(msg=msg)
         return value
 
     def vg_create_or_remove(self, vg_or_disk):
@@ -108,8 +108,8 @@ class VgOps(object):
             opts = " %s %s %s" % (vg_name, self.options, vg_or_disk)
             return self.run_command(op, opts)
         elif op == 'vgremove':
-            vg_absent = self.run_command('vgdisplay', '' + vg_or_disk)
-            if vg_absent[0]:
+            vg_absent = self.run_command('vgdisplay', ' ' + vg_or_disk)
+            if not vg_absent[0]:
                 opts = " -y -ff " + vg_or_disk
                 return self.run_command(op, opts)
             else:
