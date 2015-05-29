@@ -103,10 +103,10 @@ class PvOps(object):
         if self.action == 'create' and not rc:
             self.result['errors'].append(
                 "%s Physical Volume Exists!" %
-                options)
+                disk)
         elif self.action == 'remove' and rc:
             self.result['errors'].append(
-                "%s Physical Volume Does Not Exist!" % options)
+                "%s Physical Volume Does Not Exist!" % disk)
         else:
             ret = 1
         return ret
