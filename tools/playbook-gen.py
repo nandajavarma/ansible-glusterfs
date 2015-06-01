@@ -85,7 +85,7 @@ class HelperMethods(object):
         return self.varfile, self.filepath
 
     def move_templates_to_playbooks(self):
-        self.templates_path = '/usr/share/ansible/ansible-gluster/templates'
+        self.templates_path = '/usr/share/ansible/ansible-glusterfs/templates'
         if not os.path.isdir(self.templates_path):
             print "Templates file not found at %s. Check your ansible-gluster " \
                     "installation and try again." % self.templates_path
