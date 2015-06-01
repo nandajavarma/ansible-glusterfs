@@ -1,0 +1,15 @@
+[hosts]
+10.70.46.13
+10.70.46.15
+10.70.46.17
+10.70.46.19
+
+
+[10.70.46.13]
+devices=/dev/sdb,/dev/vdb,/dev/vda
+[10.70.46.15]
+devices=/dev/vdc,/dev/vdb
+[10.70.46.17]
+devices=/dev/vdc,/dev/vdb
+[10.70.46.19]
+devices=/dev/vdb
