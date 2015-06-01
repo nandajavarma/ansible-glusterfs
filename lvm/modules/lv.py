@@ -186,6 +186,9 @@ class LvOps(object):
             poolname = ''
         if compute == 'rhs':
             metadatasize, pool_sz = self.compute()
+        else:
+            metadatasize = self.validated_params('metadatasize')
+            pools_sz = self.validated_params('poolsize')
         if not error:
             options = {'thin': ' -L %sK -n %s %s' % (metadatasize,
                                                      lvname, self.vgname),
