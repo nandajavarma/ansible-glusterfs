@@ -84,13 +84,22 @@ class HelperMethods(object):
         self.create_required_files_and_dirs()
         return self.varfile, self.filepath
 
+    def template_files_create(self, temp_file):
+        if not os.path.isdir(temp_file):
+            return False
+        self.exec_cmds('cp %s/*' % temp_file, self.dirname)
+        return True
+
     def move_templates_to_playbooks(self):
-        self.templates_path = '/usr/share/ansible/ansible-glusterfs/templates'
-        if not os.path.isdir(self.templates_path):
-            print "Templates file not found at %s. Check your ansible-gluster " \
-                    "installation and try again." % self.templates_path
+        templates_path = '/usr/share/ansible/ansible-glusterfs/templates'
+        templates_path_bk = self.get_file_dir_path('.', 'templates')
+        if not (self.template_files_create(templates_path) or
+            self.template_files_create(templates_path_bk)):
+            print "Template files not found at %s or %s. " \
+                    "Check your ansible-gluster " \
+                    "installation and try " \
+                    "again." % (templates_path, templates_path_bk)
             sys.exit(0)
-        self.exec_cmds('cp %s/*' % self.templates_path, self.dirname)
 
     def mk_dir(self, dirlists):
         for each in dirlists:
