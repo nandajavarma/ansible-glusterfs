@@ -4,6 +4,43 @@
 10.70.46.17
 10.70.46.19
 
+# Generic section [devices] is applicable to all the hosts listed in the [hosts]
+# section. However, if sections of hosts [hostname] or [ip-address] is present,
+# then the data in generic sections like [devices] are ignored. Host specific
+# data take precedence.
+
+# [devices]
+# /dev/sda
+# /dev/vdb
+# /dev/vda
+
+# Patterns for the volume groups to be created.
+# For eg: if the patter is CUSTOM_vg; vg will be created with names CUSTOM_vg1,
+# CUSTOM_vg2, CUSTOM_vg3, so on.
+
+# [vgs]
+# CUSTOM_vg
+
+# Patterns for the thin pools to be created.
+# For eg: if the patter is CUSTOM_pool; pool will be created with names CUSTOM_pool1,
+# CUSTOM_pool2, CUSTOM_pool3, so on.
+
+# [pools]
+# CUSTOM_pool
+
+# Patterns for the logical volumes to be created.
+# For eg: if the patter is CUSTOM_lv; lv will be created with names CUSTOM_lv1,
+# CUSTOM_lv2, CUSTOM_lv3, so on.
+
+# [lvs]
+# CUSTOM_lv
+
+# Patterns for the brick mountpoints
+# For eg: if the patter is /rhs/brick; bricks will be created with names
+# /rhs/brick1, /rhs/brick2, /rhs/brick3, so on.
+
+# [mountpoints]
+# /rhs/brick
 
 [10.70.46.13]
 devices=/dev/sdb,/dev/vdb,/dev/vda
