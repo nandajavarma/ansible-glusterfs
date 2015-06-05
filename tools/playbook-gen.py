@@ -35,6 +35,7 @@ class PlaybookGen(object):
                 self.var_file_name[0])
         else:
             HostVarsGen(self.config_parse, self.var_file_name, self.hosts)
+        self.helper.move_templates_to_playbooks()
         print "To setup backend as per your configurations, as root run:\n" \
             "ansible-playbook -i %s/ansible_hosts " \
             "%s/setup-backend.yml" % (self.args.dest_dir, self.args.dest_dir)
@@ -151,7 +152,6 @@ class HelperMethods(object):
                        self.get_file_dir_path(self.dirname, self.varfile)]
             self.mk_dir(dirlist)
             self.touch_files(self.filepath)
-            self.move_templates_to_playbooks()
 
     def insufficient_param_count(self, section, count):
         print "Please provide %s names for %s devices " \
@@ -332,6 +332,8 @@ class HelperMethods(object):
             with open(filename, 'wb') as file:
                 config.write(file)
         except:
+            print filename
+            print config
             print "Failed to create file %s. Exiting!" % filename
             sys.exit(0)
 
@@ -357,13 +359,14 @@ class GroupVarsGen(object):
         host_options = self.hosts + ['hosts']
         group_options = [val for val in options if val not in host_options]
         if 'devices' in group_options:
-            options = self.helper.config_get_options(self.config_parse, 'devices')
+            options = self.helper.config_get_options(
+                    self.config_parse, 'devices')
             self.device_count = self.helper.write_device_data(
                 options,
                 self.group_vars_file_path)
         else:
-            print "Not creating group vars since no " \
-                "common option for devices provided"
+            print "Section 'devices' not specified. "\
+                    "Cannot create group vars for this configurations. Exiting!"
             sys.exit(0)
         group_options.remove('devices')
         return self.helper.write_optional_data(
