@@ -357,7 +357,7 @@ class GroupVarsGen(object):
         host_options = self.hosts + ['hosts']
         group_options = [val for val in options if val not in host_options]
         if 'devices' in group_options:
-            options = self.config_get_options(self.config_parse, 'devices')
+            options = self.helper.config_get_options(self.config_parse, 'devices')
             self.device_count = self.helper.write_device_data(
                 options,
                 self.group_vars_file_path)
