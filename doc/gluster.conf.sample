@@ -14,30 +14,29 @@
 # /dev/vdb
 # /dev/vda
 
-# Patterns for the volume groups to be created.
-# For eg: if the patter is CUSTOM_vg; vg will be created with names CUSTOM_vg1,
-# CUSTOM_vg2, CUSTOM_vg3, so on.
+# vg names for the above devices
+# The number of vgs in the [vgs] should match the devices
 
 # [vgs]
 # CUSTOM_vg
 
-# Patterns for the thin pools to be created.
-# For eg: if the patter is CUSTOM_pool; pool will be created with names CUSTOM_pool1,
-# CUSTOM_pool2, CUSTOM_pool3, so on.
+# pool names for the above volume groups
+# The number of pools listed in the [pools] section should match the number of
+# vgs.
 
 # [pools]
 # CUSTOM_pool
 
-# Patterns for the logical volumes to be created.
-# For eg: if the patter is CUSTOM_lv; lv will be created with names CUSTOM_lv1,
-# CUSTOM_lv2, CUSTOM_lv3, so on.
+# lv names for the above volume groups
+# The number of logical volumes listed in the [lvs] section should match the
+# number of vgs.
 
 # [lvs]
 # CUSTOM_lv
 
-# Patterns for the brick mountpoints
-# For eg: if the patter is /rhs/brick; bricks will be created with names
-# /rhs/brick1, /rhs/brick2, /rhs/brick3, so on.
+# Brick mountpoints for the logical volumes
+# The number of mountpoints should match the number of logical volumes listed
+# above.
 
 # [mountpoints]
 # /rhs/brick
