@@ -18,6 +18,7 @@ class PlaybookGen(object):
         self.force = self.args.force
         self.config_file = self.args.config_file.name
         self.parse_read_config()
+        print self.config_parse.sections()
         self.hosts = self.helper.get_host_names(self.config_parse)
         self.varfile, self.var_file_name = self.helper.validate_params(
             self.config_parse, self.hosts, self.group_name, self.dest_dir,
@@ -193,12 +194,14 @@ class HelperMethods(object):
         return self.ret
 
     def get_var_file_write_options(self, section, section_name):
+        print self.group_options
+        print section
         if section in self.group_options:
             options = (
                 self.varfile == 'group_vars') and self.config_get_options(
                 self.config_parse,
-                section) or self.config_get_options(
-                self.config_parse,
+                section) or self.config_section_map(
+                self.config_parse, self.section,
                 section).split(',')
             if len(options) < self.device_count:
                 return self.insufficient_param_count(
@@ -217,6 +220,7 @@ class HelperMethods(object):
 
     def write_vg_data(self):
         self.vgs = self.get_var_file_write_options('vgs', 'volume group')
+        print self.vgs
         if self.vgs:
             self.write_unassociated_data('vgs', self.vgs, self.yamlfile)
             data = []
@@ -412,6 +416,7 @@ class HostVarsGen(object):
     def create_host_vars(self):
         self.ret = True
         for each in self.hosts:
+            self.helper.section = each
             self.varfilepath = [
                 x for x in self.filenames if x.split('/')[-1] == each]
             device_names = self.helper.config_section_map(
