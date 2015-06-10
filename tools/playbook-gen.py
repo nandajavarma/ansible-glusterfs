@@ -420,9 +420,9 @@ class HostVarsGen(object):
         ret = self.create_host_vars()
         if not ret:
             print "Error: Failed creation of hostvars!"
+            sys.exit(1)
         else:
-            print "Host vars for each hosts created!\n" \
-
+            print "Host vars for each hosts created!\n"
 
     def create_host_vars(self):
         self.ret = True
