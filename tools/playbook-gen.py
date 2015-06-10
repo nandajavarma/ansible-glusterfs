@@ -166,10 +166,10 @@ class HelperMethods(object):
         self.write_yaml(data, yamlfile, False)
 
     def write_device_data(self, devices, yamlfile):
-        options = devices
+        self.bricks = devices
         self.yamlfile = yamlfile
-        self.write_unassociated_data('bricks', options, self.yamlfile)
-        return len(options)
+        self.write_unassociated_data('bricks', self.bricks, self.yamlfile)
+        return len(self.bricks)
 
     def write_optional_data(self, group_options, device_count, varfile, config):
         self.ret = True
@@ -212,6 +212,14 @@ class HelperMethods(object):
         self.vgs = self.get_var_file_write_options('vgs', 'volume group')
         if self.vgs:
             self.write_unassociated_data('vgs', self.vgs, self.yamlfile)
+            data = []
+            for i, j in zip(self.bricks, self.vgs):
+                vgnames = {}
+                vgnames['brick'] = i
+                vgnames['vg'] = j
+                data.append(vgnames)
+            data_dict = dict(vgnames=data)
+            self.write_yaml(data_dict, self.yamlfile, True)
         else:
             self.ret &= False
 

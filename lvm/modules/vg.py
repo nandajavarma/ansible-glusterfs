@@ -78,14 +78,20 @@ class VgOps(object):
     def __init__(self, module):
         self.module = module
         self.action = self.validated_params('action')
+        self.op = 'vg' + self.action
         if self.action == 'create':
-            self.vgs_or_disks = literal_eval(self.validated_params('disks'))
-            self.vg_pattern = self.validated_params('vg_pattern')
+            self.disks = self.validated_params('disks')
             self.options = self.module.params['options'] or ''
+            self.vgname = self.validated_params('vgname')
+            output = self.vg_create()
+            if output[0]:
+                self.module.fail_json(msg=output[2])
+            else:
+                self.module.exit_json(msg=output[1], changed=1)
         else:
-            self.vgs_or_disks = literal_eval(self.validated_params('vg_name'))
-        output = map(self.vg_create_or_remove, self.vgs_or_disks)
-        self.get_output(output)
+            self.vgname = literal_eval(self.validated_params('vgname'))
+            output = map(self.vg_remove, self.vgname)
+            self.get_output(output)
 
     def get_output(self, output):
         for each in output:
@@ -101,42 +107,27 @@ class VgOps(object):
             self.module.fail_json(msg=msg)
         return value
 
-    def vg_create_or_remove(self, vg_or_disk):
-        op = 'vg' + self.action
-        if op == 'vgcreate':
-            vg_name = self.generate_name()
-            opts = " %s %s %s" % (vg_name, self.options, vg_or_disk)
-            return self.run_command(op, opts)
-        elif op == 'vgremove':
-            vg_absent = self.run_command('vgdisplay', ' ' + vg_or_disk)
-            if not vg_absent[0]:
-                opts = " -y -ff " + vg_or_disk
-                return self.run_command(op, opts)
-            else:
-                return vg_absent
+    def vg_create(self):
+        opts = " %s %s %s" % (self.vgname, self.options, self.disks)
+        return self.run_command(self.op, opts)
 
-    def vg_present(self, vgname):
-        absent, out, err = self.run_command('vgdisplay', ' ' + vgname)
-        if absent:
-            return False
-        return True
+    def vg_remove(self, vgname):
+        vg_absent = self.run_command('vgdisplay', ' ' + vgname)
+        if not vg_absent[0]:
+            opts = " -y -ff " + vgname
+            return self.run_command(self.op, opts)
+        else:
+            return vg_absent
 
     def run_command(self, op, opts):
         cmd = self.module.get_bin_path(op, True) + opts
         return self.module.run_command(cmd)
 
-    def generate_name(self):
-        for i in range(1, 100):
-            new_vgname = self.vg_pattern + str(i)
-            if not self.vg_present(new_vgname):
-                return new_vgname
-
 if __name__ == '__main__':
     module = AnsibleModule(
         argument_spec=dict(
             action=dict(choices=["create", "remove"], required=True),
-            vg_pattern=dict(type='str'),
-            vg_name=dict(type='str'),
+            vgname=dict(type='str'),
             disks=dict(),
             options=dict(type='str'),
         ),

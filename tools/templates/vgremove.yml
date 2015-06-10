@@ -7,4 +7,4 @@
   tasks:
   - name: Remove the volume groups
     vg: action="remove"
-        vg_name="{{ vgs }}"
+        vgname="{{ vgs }}"

@@ -6,8 +6,7 @@
 
   tasks:
   - name: Create volume group on the disks
-    vg: action="create" disks="{{ bricks }}"
+    vg: action="create" disks={{ item.brick }}
         options="--physicalextentsize 128k"
-        vg_pattern="RHS_vg"     # If there is more than 1 disk, vg names are
-                                # vg_pattern followed by incremented numers
-
+        vgname={{ item.vg }}
+    with_items: vgnames
