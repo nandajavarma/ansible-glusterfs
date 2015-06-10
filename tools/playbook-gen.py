@@ -64,7 +64,14 @@ class PlaybookGen(object):
 
     def parse_read_config(self):
         self.config_parse = self.helper.call_config_parser()
-        self.config_parse.read(self.config_file)
+        try:
+            self.config_parse.read(self.config_file)
+        except AttributeError as msg:
+            print "Sorry! Looks like the format of configuration " \
+                    "file is not something we could read! \nTry removing " \
+                    "whitespaces or unwanted characters in the configuration " \
+                    "file."
+            sys.exit(0)
 
     def create_inventory_file(self):
         self.inventory_file = self.helper.get_file_dir_path(
