@@ -32,9 +32,11 @@ class PlaybookGen(object):
                 self.config_parse,
                 self.dest_dir,
                 self.group_name,
-                self.var_file_name[0])
+                self.var_file_name[0],
+                self.varfile)
         else:
-            HostVarsGen(self.config_parse, self.var_file_name, self.hosts)
+            HostVarsGen(self.config_parse, self.var_file_name, self.hosts,
+                    self.varfile)
         self.helper.move_templates_to_playbooks()
         print "To setup backend as per your configurations, as root run:\n" \
             "ansible-playbook -i %s/ansible_hosts " \
@@ -169,8 +171,10 @@ class HelperMethods(object):
         self.write_unassociated_data('bricks', options, self.yamlfile)
         return len(options)
 
-    def write_optional_data(self, group_options, device_count):
+    def write_optional_data(self, group_options, device_count, varfile, config):
         self.ret = True
+        self.varfile = varfile
+        self.config_parse = config
         self.group_options = group_options
         self.device_count = device_count
         self.write_vg_data()
@@ -340,8 +344,9 @@ class HelperMethods(object):
 
 class GroupVarsGen(object):
 
-    def __init__(self, config_parse, dirname, group_name, filename):
+    def __init__(self, config_parse, dirname, group_name, filename, varfile):
         self.group_vars_file_path = filename
+        self.varfile = varfile
         self.helper = HelperMethods()
         self.config_parse = config_parse
         self.dirname = dirname
@@ -371,13 +376,14 @@ class GroupVarsGen(object):
         group_options.remove('devices')
         return self.helper.write_optional_data(
             group_options,
-            self.device_count)
+            self.device_count, self.varfile, self.config_parse)
 
 
 class HostVarsGen(object):
 
-    def __init__(self, config_parse, filenames, hosts):
+    def __init__(self, config_parse, filenames, hosts, varfile):
         self.helper = HelperMethods()
+        self.varfile = varfile
         self.config_parse = config_parse
         self.filenames = filenames
         self.hosts = hosts
@@ -410,7 +416,7 @@ class HostVarsGen(object):
             group_sections = [x for x in other_options if x != 'devices']
             self.ret &= self.helper.write_optional_data(
                 group_sections,
-                self.device_count)
+                self.device_count, self.varfile, self.config_parse)
         return self.ret
 
 
