@@ -186,11 +186,11 @@ class HelperMethods(object):
         self.group_options = group_options
         self.device_count = device_count
         self.write_vg_data()
-        self.write_pool_data()
-        self.write_lv_data()
-        self.write_lvols_data()
-        self.write_mountpoints_data()
-        self.write_mntpath_data()
+        self.ret and self.write_pool_data()
+        self.ret and self.write_lv_data()
+        self.ret and self.write_lvols_data()
+        self.ret and self.write_mountpoints_data()
+        self.ret and self.write_mntpath_data()
         return self.ret
 
     def get_var_file_write_options(self, section, section_name):
@@ -220,7 +220,6 @@ class HelperMethods(object):
 
     def write_vg_data(self):
         self.vgs = self.get_var_file_write_options('vgs', 'volume group')
-        print self.vgs
         if self.vgs:
             self.write_unassociated_data('vgs', self.vgs, self.yamlfile)
             data = []
