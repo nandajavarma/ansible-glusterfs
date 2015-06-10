@@ -18,7 +18,6 @@ class PlaybookGen(object):
         self.force = self.args.force
         self.config_file = self.args.config_file.name
         self.parse_read_config()
-        print self.config_parse.sections()
         self.hosts = self.helper.get_host_names(self.config_parse)
         self.varfile, self.var_file_name = self.helper.validate_params(
             self.config_parse, self.hosts, self.group_name, self.dest_dir,
@@ -194,8 +193,6 @@ class HelperMethods(object):
         return self.ret
 
     def get_var_file_write_options(self, section, section_name):
-        print self.group_options
-        print section
         if section in self.group_options:
             options = (
                 self.varfile == 'group_vars') and self.config_get_options(
@@ -354,8 +351,6 @@ class HelperMethods(object):
             with open(filename, 'wb') as file:
                 config.write(file)
         except:
-            print filename
-            print config
             print "Failed to create file %s. Exiting!" % filename
             sys.exit(0)
 
