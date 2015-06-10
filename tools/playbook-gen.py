@@ -120,6 +120,8 @@ class HelperMethods(object):
                     "Use -f option to overwrite" % each.split('/')[-1]
                 sys.exit(0)
             else:
+                self.exec_cmds('rm -rf', each)
+                self.exec_cmds('mkdir', each)
                 continue
 
     def touch_files(self, filelists):
@@ -340,7 +342,9 @@ class HelperMethods(object):
             sys.exit()
 
     def call_config_parser(self):
-        return ConfigParser.ConfigParser(allow_no_value=True)
+        config = ConfigParser.ConfigParser(allow_no_value=True)
+        config.optionxform = str
+        return config
 
     def parse_config_write(self, section, options, filename):
         config = self.call_config_parser()
