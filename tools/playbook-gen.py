@@ -186,7 +186,8 @@ class HelperMethods(object):
         self.config_parse = config
         self.group_options = group_options
         self.device_count = device_count
-        self.write_vg_data()
+        self.write_disk_type()
+        self.ret and self.write_vg_data()
         self.ret and self.write_pool_data()
         self.ret and self.write_lv_data()
         self.ret and self.write_lvols_data()
@@ -194,14 +195,16 @@ class HelperMethods(object):
         self.ret and self.write_mntpath_data()
         return self.ret
 
-    def get_var_file_write_options(self, section, section_name):
-        if section in self.group_options:
-            options = (
-                self.varfile == 'group_vars') and self.config_get_options(
+    def get_options(self, section):
+        return (self.varfile == 'group_vars') and self.config_get_options(
                 self.config_parse,
                 section) or self.config_section_map(
                 self.config_parse, self.section,
                 section).split(',')
+
+    def get_var_file_write_options(self, section, section_name):
+        if section in self.group_options:
+            options = self.get_options(section)
             if len(options) < self.device_count:
                 return self.insufficient_param_count(
                     section_name,
@@ -216,6 +219,16 @@ class HelperMethods(object):
             for i in range(1, self.device_count + 1):
                 options.append(pattern + str(i))
         return options
+
+    def write_disk_type(self):
+        self.disktype = self.get_options('disktype')[0] or 'raid6'
+        if self.disktype:
+            self.write_unassociated_data('disktype', self.disktype,
+                    self.yamlfile)
+        else:
+            self.ret &= False
+        self.write_unassociated_data('diskcount', self.device_count,
+                self.yamlfile)
 
     def write_vg_data(self):
         self.vgs = self.get_var_file_write_options('vgs', 'volume group')
