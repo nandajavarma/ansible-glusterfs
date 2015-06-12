@@ -10,4 +10,5 @@
         vgname={{ item.vg }}
         diskcount="{{ diskcount }}"
         compute="{{ disktype }}"
+        stripesize="{{ stripesize }}"
     with_items: vgnames

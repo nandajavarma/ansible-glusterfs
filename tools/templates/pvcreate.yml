@@ -7,4 +7,4 @@
   # Create pv on all the disks
   - name: Create Physical Volume on all the nodes
     pv: action=create disks="{{ bricks }}"
-        options="--dataalignment 1280k"
+        options="--dataalignment {{ dalign }}k"

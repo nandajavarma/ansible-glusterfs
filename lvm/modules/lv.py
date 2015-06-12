@@ -167,15 +167,12 @@ class LvOps(object):
                 self.module.fail_json(msg="PV %s does not exist" % pv_name)
 
     def get_thin_pool_chunk_sz(self):
-        try:
-            diskcount = self.validated_params('diskcount')
-            return {'raid10': self.stripe_unit_size * int(diskcount),
-                    'raid6': 256,
-                    'jbod': 256
+        diskcount = self.validated_params('diskcount')
+        chunksize = {'raid10': self.stripe_unit_size * int(diskcount),
+                     'raid6': 256,
+                     'jbod': 256
                    }[self.compute_type]
-        except:
-            self.module.fail_json(msg="Unknown disk type: " \
-                    "%s. Exiting!" % self.compute_type)
+        return chunksize
 
     def validated_params(self, opt):
         value = self.module.params[opt]
@@ -212,8 +209,8 @@ class LvOps(object):
 
     def convert(self):
         thinpool = self.validated_params('thinpool')
-        self.stripe_unit_size = 256 #For raid10
-        self.compute_type = self.module.params['compute'] or ''
+        self.compute_type = self.validated_params('compute')
+        self.stripe_unit_size = self.validated_params('stripesize')
         poolmetadata = self.module.params['poolmetadata'] or ''
         poolmetadataspare = self.module.params['poolmetadataspare'] or ''
         chunksize = self.get_thin_pool_chunk_sz()
@@ -247,7 +244,8 @@ def main():
             poolname=dict(),
             zero=dict(),
             compute=dict(),
-            diskcount=dict()
+            diskcount=dict(),
+            stripesize=dict()
         ),
     )
 
