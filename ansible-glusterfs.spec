@@ -1,6 +1,6 @@
 %define name ansible-glusterfs
 %define version 0
-%define release 2
+%define release 3
 
 Name:		%{name}
 Version:	%{version}
@@ -39,7 +39,6 @@ install -m 755 tools/playbook-gen.py %{buildroot}/usr/bin
 
 # Install our playbooks in /usr/share
 mkdir -p %{buildroot}/usr/share/ansible/ansible-glusterfs/doc
-cp -r lvm/playbooks/ %{buildroot}/usr/share/ansible/ansible-glusterfs/doc
 
 # Install the templates into /usr/share/ansible/ansible-glusterfs/templates
 cp -r tools/templates/ %{buildroot}/usr/share/ansible/ansible-glusterfs/
@@ -58,6 +57,9 @@ rm -rf %{buildroot}
 %doc README.md
 
 %changelog
+* Fri Jun 12 2015 Nandaja Varma <nvarma@redhat.com> 0.3
+- Added options to build backed based on disk types
+
 * Tue Jun 2 2015 Nandaja Varma <nvarma@redhat.com> 0.2
 - Added tool to generate the playbooks
 
