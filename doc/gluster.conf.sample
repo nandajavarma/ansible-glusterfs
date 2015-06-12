@@ -14,6 +14,25 @@
 # /dev/vdb
 # /dev/vda
 
+# Section [disktype] specifies which disk configuration is used while
+# setting up the backend. Supports RAID 10, RAID 6 and JBOD configurations. If this
+# field is left empty, it will be by default taken as JBOD.
+# [disktype]
+# raid6
+
+# Section [diskcount] specifies the number of data disks in the setup. This is a
+# mandatory field if the disk configuration specified is either RAID 10 or RAID 6
+# and will be ignored if architecture is JBOD.
+# [diskcount]
+# 10
+
+# Section [stripesize] specifies the stripe_unit size in KB. This is a mandatory field if
+# disk configuration is RAID 6. If this is not specified in case of RAID 10 configurations,
+# it will take the default value 256K. This field is not necessary for JBOD configuration
+# of disks. Do not add any suffixes like K, KB, M, etc.
+# [stripesize]
+# 128
+
 # vg names for the above devices
 # The number of vgs in the [vgs] should match the devices
 
