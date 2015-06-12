@@ -198,9 +198,9 @@ class HelperMethods(object):
     def get_options(self, section):
         return (self.varfile == 'group_vars') and self.config_get_options(
                 self.config_parse,
-                section) or self.config_section_map(
+                section) or filter(None, self.config_section_map(
                 self.config_parse, self.section,
-                section).split(',')
+                section).split(','))
 
     def get_var_file_write_options(self, section, section_name):
         if section in self.group_options:
@@ -220,15 +220,60 @@ class HelperMethods(object):
                 options.append(pattern + str(i))
         return options
 
-    def write_disk_type(self):
-        self.disktype = self.get_options('disktype')[0] or 'raid6'
-        if self.disktype:
-            self.write_unassociated_data('disktype', self.disktype,
-                    self.yamlfile)
+    def plain_yaml_write(self, keys, values):
+        for key, value in zip(keys, values):
+            self.write_unassociated_data(key, value, self.yamlfile)
+
+    def write_data_alignment(self):
+        if self.disktype == 'jbod':
+            self.dataalign = 256
         else:
-            self.ret &= False
-        self.write_unassociated_data('diskcount', self.device_count,
+            self.dataalign = { 'raid6': int(self.stripesize) * int(self.diskcount),
+                                'raid10': int(self.stripesize) * int(self.diskcount)
+                              }[self.disktype]
+        self.write_unassociated_data('dalign', int(self.dataalign),
                 self.yamlfile)
+
+    def write_stripe_size(self):
+        try:
+            self.stripesize = self.config_get_options(self.config_parse,
+                    'stripesize')[0]
+            if self.disktype == 'raid10' and self.stripsize != 256:
+                print "Warning: We recommend a stripe unit size of 256KB " \
+                        "for RAID 10"
+        except:
+            if self.disktype == 'raid10':
+                self.stripesize = 256
+            else:
+                print "Please provide the stripe unit size since you have " \
+                        "mentioned the disk type to be RAID 6"
+                sys.exit()
+
+    def write_disk_type(self):
+        if 'disktype' in self.group_options:
+            self.disktype = self.config_get_options(self.config_parse,
+                    'disktype')[0]
+            if self.disktype not in ['raid10', 'raid6', 'jbod']:
+                print "Unsupported disk type!"
+                sys.exit(0)
+        else:
+            self.disktype = 'jbod'
+        if self.disktype != 'jbod':
+            if 'diskcount' in self.group_options:
+                self.diskcount = self.config_get_options(self.config_parse,
+                        'diskcount')[0]
+                self.write_stripe_size()
+            else:
+                print "Since you have specified your diskcount to be %s, " \
+                        "Please provide number of data disks!" % self.disktype
+                sys.exit()
+        else:
+            self.diskcount = 0
+            self.stripesize = 0
+        disk_data_keys = ['disktype', 'diskcount', 'stripesize']
+        disk_data_values = [self.disktype, int(self.diskcount), int(self.stripesize)]
+        self.plain_yaml_write(disk_data_keys, disk_data_values)
+        self.write_data_alignment()
 
     def write_vg_data(self):
         self.vgs = self.get_var_file_write_options('vgs', 'volume group')
@@ -439,7 +484,7 @@ class HostVarsGen(object):
                     "common option for devices provided"
                 sys.exit(0)
             self.device_count = self.helper.write_device_data(
-                device_names.split(','),
+                filter(None, device_names.split(',')),
                 self.varfilepath[0])
             other_options = self.helper.config_get_options(
                 self.config_parse,
