@@ -111,7 +111,6 @@ class VgOps(object):
         self.stripe_unit_size = self.validated_params('stripesize')
         self.diskcount = self.validated_params('diskcount')
         pe_size = int(self.stripe_unit_size) * int(self.diskcount)
-        self.module.fail_json(msg=pe_size)
         return pe_size
 
     def vg_create(self):
