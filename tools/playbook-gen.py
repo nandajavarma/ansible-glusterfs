@@ -235,13 +235,13 @@ class HelperMethods(object):
                 self.yamlfile)
 
     def write_stripe_size(self):
-        try:
+        if 'stripesize' in self.all_sections:
             self.stripesize = self.config_get_options(self.config_parse,
                     'stripesize')[0]
-            if self.disktype == 'raid10' and self.stripsize != 256:
+            if self.disktype == 'raid10' and self.stripesize != 256:
                 print "Warning: We recommend a stripe unit size of 256KB " \
                         "for RAID 10"
-        except:
+        else:
             if self.disktype == 'raid10':
                 self.stripesize = 256
             else:
@@ -250,7 +250,8 @@ class HelperMethods(object):
                 sys.exit()
 
     def write_disk_type(self):
-        if 'disktype' in self.group_options:
+        self.all_sections = self.config_get_sections(self.config_parse)
+        if 'disktype' in self.all_sections:
             self.disktype = self.config_get_options(self.config_parse,
                     'disktype')[0]
             if self.disktype not in ['raid10', 'raid6', 'jbod']:
@@ -259,7 +260,7 @@ class HelperMethods(object):
         else:
             self.disktype = 'jbod'
         if self.disktype != 'jbod':
-            if 'diskcount' in self.group_options:
+            if 'diskcount' in self.all_sections:
                 self.diskcount = self.config_get_options(self.config_parse,
                         'diskcount')[0]
                 self.write_stripe_size()
