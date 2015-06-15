@@ -168,7 +168,7 @@ class LvOps(object):
 
     def get_thin_pool_chunk_sz(self):
         diskcount = self.validated_params('diskcount')
-        chunksize = {'raid10': self.stripe_unit_size * int(diskcount),
+        chunksize = {'raid10': int(self.stripe_unit_size) * int(diskcount),
                      'raid6': 256,
                      'jbod': 256
                    }[self.compute_type]
