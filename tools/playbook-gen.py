@@ -253,7 +253,7 @@ class HelperMethods(object):
         self.all_sections = self.config_get_sections(self.config_parse)
         if 'disktype' in self.all_sections:
             self.disktype = self.config_get_options(self.config_parse,
-                    'disktype')[0]
+                    'disktype')[0].lower()
             if self.disktype not in ['raid10', 'raid6', 'jbod']:
                 print "Error: Unsupported disk type!"
                 sys.exit(0)
@@ -265,7 +265,7 @@ class HelperMethods(object):
                         'diskcount')[0]
                 self.write_stripe_size()
             else:
-                print "Error: Since you have specified your diskcount to be %s, " \
+                print "Error: Since you have specified your disktype to be %s, " \
                         "Please provide number of data disks!" % self.disktype
                 sys.exit()
         else:
