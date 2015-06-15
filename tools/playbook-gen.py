@@ -24,7 +24,7 @@ class PlaybookGen(object):
             self.force)
         self.create_inventory_file()
         if not self.varfile:
-            print "Provide either configuration specific to each hosts " \
+            print "Error: Provide either configuration specific to each hosts " \
                 "or provide common configurations for all. Exiting!"
             sys.exit(0)
         if self.varfile == 'group_vars':
@@ -105,7 +105,7 @@ class HelperMethods(object):
         templates_path_bk = self.get_file_dir_path('.', 'templates')
         if not (self.template_files_create(templates_path) or
             self.template_files_create(templates_path_bk)):
-            print "Template files not found at %s or %s. " \
+            print "Error: Template files not found at %s or %s. " \
                     "Check your ansible-gluster " \
                     "installation and try " \
                     "again." % (templates_path, templates_path_bk)
@@ -116,7 +116,7 @@ class HelperMethods(object):
             if not os.path.isdir(each):
                 self.exec_cmds('mkdir', each)
             elif self.force == 'n':
-                print "Directory '%s' already exists. " \
+                print "Error: Directory '%s' already exists. " \
                     "Use -f option to overwrite" % each.split('/')[-1]
                 sys.exit(0)
             else:
@@ -148,7 +148,7 @@ class HelperMethods(object):
                     self.varfile +
                     '/' + x) for x in self.hosts]
             else:
-                print "Give configurations for all the hosts. Exiting!"
+                print "Error: Give configurations for all the hosts. Exiting!"
                 sys.exit(0)
         else:
             self.varfile = 'group_vars'
@@ -245,7 +245,7 @@ class HelperMethods(object):
             if self.disktype == 'raid10':
                 self.stripesize = 256
             else:
-                print "Please provide the stripe unit size since you have " \
+                print "Error: Please provide the stripe unit size since you have " \
                         "mentioned the disk type to be RAID 6"
                 sys.exit()
 
@@ -255,7 +255,7 @@ class HelperMethods(object):
             self.disktype = self.config_get_options(self.config_parse,
                     'disktype')[0]
             if self.disktype not in ['raid10', 'raid6', 'jbod']:
-                print "Unsupported disk type!"
+                print "Error: Unsupported disk type!"
                 sys.exit(0)
         else:
             self.disktype = 'jbod'
@@ -265,7 +265,7 @@ class HelperMethods(object):
                         'diskcount')[0]
                 self.write_stripe_size()
             else:
-                print "Since you have specified your diskcount to be %s, " \
+                print "Error: Since you have specified your diskcount to be %s, " \
                         "Please provide number of data disks!" % self.disktype
                 sys.exit()
         else:
@@ -358,7 +358,7 @@ class HelperMethods(object):
         try:
             return self.config_get_options(config_parse, 'hosts')
         except:
-            print "Cannot find the section hosts in the config." \
+            print "Error: Cannot find the section hosts in the config." \
                 " The generator can't proceed. Exiting!"
             sys.exit(0)
 
@@ -397,7 +397,7 @@ class HelperMethods(object):
         try:
             os.system(cmd + ' ' + opts)
         except:
-            print "Command %s failed. Exiting!" % cmd
+            print "Error: Command %s failed. Exiting!" % cmd
             sys.exit()
 
     def call_config_parser(self):
@@ -414,7 +414,7 @@ class HelperMethods(object):
             with open(filename, 'wb') as file:
                 config.write(file)
         except:
-            print "Failed to create file %s. Exiting!" % filename
+            print "Error: Failed to create file %s. Exiting!" % filename
             sys.exit(0)
 
 
@@ -429,7 +429,7 @@ class GroupVarsGen(object):
         self.group_name = group_name
         ret = self.create_group_vars()
         if not ret:
-            print "Failed creation of group vars!"
+            print "Error: Failed creation of group vars!"
             sys.exit(0)
         else:
             print "Group vars for all the hosts created!"
@@ -446,7 +446,7 @@ class GroupVarsGen(object):
                 options,
                 self.group_vars_file_path)
         else:
-            print "Section 'devices' not specified. "\
+            print "Error: Section 'devices' not specified. "\
                     "Cannot create group vars for this configurations. Exiting!"
             sys.exit(0)
         group_options.remove('devices')
@@ -481,7 +481,7 @@ class HostVarsGen(object):
                 each,
                 'devices')
             if not device_names:
-                print "Not creating group vars since no " \
+                print "Error: Not creating group vars since no " \
                     "common option for devices provided"
                 sys.exit(0)
             self.device_count = self.helper.write_device_data(
